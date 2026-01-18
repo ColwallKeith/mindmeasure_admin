@@ -1,0 +1,101 @@
+name: Critical Path Verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify-critical-paths:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run critical path checks
+        run: |
+          echo "🔍 Running critical path verification..."
+          
+          # Check main.tsx has both Router and App
+          if ! grep -q "import.*Router" src/main.tsx; then
+            echo "❌ CRITICAL: Router import missing"
+            exit 1
+          fi
+          
+          if ! grep -q "import.*App" src/main.tsx; then
+            echo "❌ CRITICAL: App import missing"
+            exit 1
+          fi
+          
+          if ! grep -q "isAdminDomain\|hostname" src/main.tsx; then
+            echo "❌ CRITICAL: Domain detection missing"
+            exit 1
+          fi
+          
+          echo "✅ Critical path checks passed"
+          
+      - name: Build application
+        run: npm run build
+        
+      - name: Verify build integrity
+        run: node scripts/verify-build.js
+        
+      - name: Deploy to staging (main branch only)
+        if: github.ref == 'refs/heads/main'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          npx vercel --prod --token $VERCEL_TOKEN
+          
+      - name: Wait for deployment propagation
+        if: github.ref == 'refs/heads/main'
+        run: sleep 60
+        
+      - name: Smoke test admin routes
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "🧪 Testing admin routes..."
+          
+          # Test admin login page
+          if ! curl -f -s https://admin.mindmeasure.co.uk/sign-in > /dev/null; then
+            echo "❌ CRITICAL: Admin login page unreachable"
+            exit 1
+          fi
+          
+          # Test superuser login page  
+          if ! curl -f -s https://admin.mindmeasure.co.uk/superuser-login > /dev/null; then
+            echo "❌ CRITICAL: Superuser login page unreachable"
+            exit 1
+          fi
+          
+          echo "✅ Admin routes accessible"
+          
+      - name: Test mobile domain
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "🧪 Testing mobile domain..."
+          
+          if ! curl -f -s https://mobile.mindmeasure.app > /dev/null; then
+            echo "❌ CRITICAL: Mobile domain unreachable"
+            exit 1
+          fi
+          
+          echo "✅ Mobile domain accessible"
+          
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "🚨 CRITICAL DEPLOYMENT FAILURE"
+          echo "Admin or mobile access may be broken!"
+          echo "Check the logs and consider immediate rollback."

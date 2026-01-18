@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Environment Debug</title>
+</head>
+<body>
+    <h1>Environment Variables Debug</h1>
+    <div id="debug-info"></div>
+    
+    <script>
+        // This will help us see what environment variables are actually loaded
+        const debugInfo = document.getElementById('debug-info');
+        
+        // Check if we're in production
+        const isProduction = window.location.hostname !== 'localhost';
+        
+        debugInfo.innerHTML = `
+            <p><strong>Current URL:</strong> ${window.location.href}</p>
+            <p><strong>Environment:</strong> ${isProduction ? 'Production' : 'Development'}</p>
+            <p><strong>Expected Supabase URL:</strong> ${isProduction ? 'https://api.mindmeasure.co.uk' : 'Check console for actual values'}</p>
+            <p><strong>Note:</strong> Environment variables are not accessible in browser for security. Check browser console for any Supabase warnings.</p>
+        `;
+        
+        // Check console for Supabase warnings
+        console.log('=== Environment Debug ===');
+        console.log('Current URL:', window.location.href);
+        console.log('Is Production:', isProduction);
+        console.log('Check for Supabase warnings above this message');
+    </script>
+</body>
+</html>
+
+
+
+

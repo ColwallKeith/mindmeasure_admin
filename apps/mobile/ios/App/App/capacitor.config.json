@@ -1,0 +1,29 @@
+{
+	"appId": "uk.co.mindmeasure.app",
+	"appName": "MindMeasure",
+	"webDir": "dist",
+	"server": {},
+	"plugins": {
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		},
+		"SplashScreen": {
+			"launchShowDuration": 3000,
+			"backgroundColor": "#1e40af",
+			"showSpinner": true,
+			"spinnerColor": "#f59e0b"
+		}
+	},
+	"packageClassList": [
+		"AppPlugin",
+		"CAPCameraPlugin",
+		"DevicePlugin",
+		"CAPNetworkPlugin",
+		"PreferencesPlugin",
+		"PushNotificationsPlugin"
+	]
+}

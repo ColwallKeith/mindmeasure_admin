@@ -1,0 +1,13 @@
+{
+  "testing-panel-guide": {
+    "title": "Testing Panel Guide",
+    "theme": {
+      "breadcrumb": true,
+      "footer": true,
+      "sidebar": true,
+      "toc": true,
+      "pagination": true
+    }
+  }
+}
+

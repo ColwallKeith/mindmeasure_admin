@@ -1,0 +1,37 @@
+name: Docs Gate
+on:
+  pull_request:
+    types: [opened, synchronize, edited, reopened]
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect code changes that require docs
+        id: detect
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          echo "$CHANGED" > changed.txt
+          echo "changed=$CHANGED" >> $GITHUB_OUTPUT
+          REQUIRES_DOCS=false
+          echo "$CHANGED" | grep -E '^(src/|supabase/|scripts/|packages/|apps/)' && REQUIRES_DOCS=true || true
+          echo "requires_docs=$REQUIRES_DOCS" >> $GITHUB_OUTPUT
+      - name: Check if docs changed
+        id: docs
+        run: |
+          DOCS_CHANGED=false
+          grep -E '^docs/' changed.txt && DOCS_CHANGED=true || true
+          echo "docs_changed=$DOCS_CHANGED" >> $GITHUB_OUTPUT
+      - name: Comment and fail if needed
+        if: steps.detect.outputs.requires_docs == 'true' && steps.docs.outputs.docs_changed != 'true'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: docs-gate
+          message: |
+            It looks like code changed without docs updates.
+            Please add or update pages under `/docs`:
+            - Architecture, DB/RLS, Admin UI, or an ADR as appropriate.
+      - name: Fail job when docs missing
+        if: steps.detect.outputs.requires_docs == 'true' && steps.docs.outputs.docs_changed != 'true'
+        run: exit 1

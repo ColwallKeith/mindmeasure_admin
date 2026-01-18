@@ -1,0 +1,15 @@
+.vercel
+node_modules/
+dist/
+build/
+.env
+.env.local
+.env.production
+.env.development
+*.log
+.DS_Store
+ios/App/App.xcarchive/
+ios/App/archive.plist
+.vite/
+*.tsbuildinfo
+BACKUP_20250909_114508/
