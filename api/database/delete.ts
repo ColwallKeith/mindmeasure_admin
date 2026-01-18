@@ -4,16 +4,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 // @ts-ignore - pg types not available in Vercel environment
 import { Client } from 'pg';
-
-// Aurora Serverless v2 configuration
-const dbConfig = {
-  host: process.env.AWS_AURORA_HOST || process.env.AWS_RDS_HOST || 'mindmeasure-aurora.cluster-cz8c8wq4k3ak.eu-west-2.rds.amazonaws.com',
-  port: parseInt(process.env.AWS_AURORA_PORT || process.env.AWS_RDS_PORT || '5432'),
-  database: process.env.AWS_AURORA_DATABASE || process.env.AWS_RDS_DATABASE || 'mindmeasure',
-  user: process.env.AWS_AURORA_USERNAME || process.env.AWS_RDS_USERNAME || 'mindmeasure_admin',
-  password: process.env.AWS_AURORA_PASSWORD || process.env.AWS_RDS_PASSWORD || 'K31th50941964!',
-  ssl: { rejectUnauthorized: false }
-};
+import { getSecureDbConfig } from '../_lib/db-config';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests
@@ -27,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Table name and filters are required' });
   }
 
-  const client = new Client(dbConfig);
+  const client = new Client(getSecureDbConfig());
 
   try {
     await client.connect();
